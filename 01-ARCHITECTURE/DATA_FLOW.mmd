@@ -1,36 +1,38 @@
-graph TD
-    subgraph "Fronteira de Confiança: VPC DO CLIENTE (Alta Segurança)"
-        style ClientVPC fill:#e8f0fe,stroke:#4285f4,stroke-width:2px,stroke-dasharray: 5 5
-        ClientVPC[Projeto do Cliente / Perímetro VPC]
+flowchart TD
 
-        subgraph "VPC Service Controls (Perímetro)"
-            style VPC_SC fill:#fff,stroke:#ea4335,stroke-width:4px
-            
-            LB[Load Balancer Interno <br/>(Apenas IP Privado)]
-            
-            subgraph "Enclave Computacional (gVisor)"
-                App[FoundLab Core Container <br/>(Sem Estado / Apenas RAM)]
-            end
-            
-            KMS[Cloud KMS <br/>(Chaves CMEK)]
-            Logs[Cloud Logging <br/>(Trilhas de Auditoria)]
-        end
-        
-        Data[Dados Sensíveis do Cliente]
+  subgraph Fronteira_Confianca_VPC_Cliente_Alta_Seguranca
+    ClientVPC[Projeto do Cliente Perimetro VPC]
+
+    subgraph VPC_Service_Controls_Perimetro
+      LB[Load Balancer Interno Apenas IP Privado]
+
+      subgraph Enclave_Computacional_gVisor
+        App[FoundLab Core Container Sem Estado Apenas RAM]
+      end
+
+      KMS[Cloud KMS Chaves CMEK]
+      Logs[Cloud Logging Trilhas de Auditoria]
     end
 
-    subgraph "Fronteira de Confiança: FOUNDLAB (Produtor)"
-        Repo[Artifact Registry <br/>(Imagens Assinadas / SLSA 3)]
-    end
+    Data[Dados Sensiveis do Cliente]
+  end
 
-    Data == mTLS 1.3 ==> LB
-    LB --> App
-    Repo -.->|Autorização Binária| App
-    App -->|Desempacotar DEK| KMS
-    App -->|Logs Estruturados| Logs
-    
-    %% Defesas
-    App --- D1[<b style='color:red'>SEM SAÍDA PARA INTERNET</b>]
-    KMS --- D2[<b>Justificativa de Acesso à Chave (KAJ)</b>]
-    
-    linkStyle 0 stroke:#34a853,stroke-width:2px;
+  subgraph Fronteira_Confianca_FOUNDLAB_Produtor
+    Repo[Artifact Registry Imagens Assinadas SLSA3]
+  end
+
+  Data -->|mTLS 1.3| LB
+  LB --> App
+  Repo -.->|Autorizacao Binaria| App
+  App -->|Desempacotar DEK| KMS
+  App -->|Logs Estruturados| Logs
+
+  %% Defesas (convertidas em texto simples)
+  App --- D1[SEM SAIDA PARA INTERNET]
+  KMS --- D2[Justificativa de Acesso a Chave KAJ]
+
+  %% Estilos simplificados para compatibilidade GitHub
+  style ClientVPC fill:#e8f0fe,stroke:#4285f4
+  style VPC_Service_Controls_Perimetro fill:#fff,stroke:#ea4335
+  style D1 fill:#fee2e2,stroke:#ef4444
+  style D2 fill:#fef9c3,stroke:#ca8a04
