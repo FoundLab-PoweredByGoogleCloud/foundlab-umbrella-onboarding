@@ -1,0 +1,36 @@
+graph TD
+    subgraph "Fronteira de Confiança: VPC DO CLIENTE (Alta Segurança)"
+        style ClientVPC fill:#e8f0fe,stroke:#4285f4,stroke-width:2px,stroke-dasharray: 5 5
+        ClientVPC[Projeto do Cliente / Perímetro VPC]
+
+        subgraph "VPC Service Controls (Perímetro)"
+            style VPC_SC fill:#fff,stroke:#ea4335,stroke-width:4px
+            
+            LB[Load Balancer Interno <br/>(Apenas IP Privado)]
+            
+            subgraph "Enclave Computacional (gVisor)"
+                App[FoundLab Core Container <br/>(Sem Estado / Apenas RAM)]
+            end
+            
+            KMS[Cloud KMS <br/>(Chaves CMEK)]
+            Logs[Cloud Logging <br/>(Trilhas de Auditoria)]
+        end
+        
+        Data[Dados Sensíveis do Cliente]
+    end
+
+    subgraph "Fronteira de Confiança: FOUNDLAB (Produtor)"
+        Repo[Artifact Registry <br/>(Imagens Assinadas / SLSA 3)]
+    end
+
+    Data == mTLS 1.3 ==> LB
+    LB --> App
+    Repo -.->|Autorização Binária| App
+    App -->|Desempacotar DEK| KMS
+    App -->|Logs Estruturados| Logs
+    
+    %% Defesas
+    App --- D1[<b style='color:red'>SEM SAÍDA PARA INTERNET</b>]
+    KMS --- D2[<b>Justificativa de Acesso à Chave (KAJ)</b>]
+    
+    linkStyle 0 stroke:#34a853,stroke-width:2px;
